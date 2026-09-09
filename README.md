@@ -9,7 +9,7 @@ Windows 下用于多台电脑之间同步 Codex 本地会话记录的小工具�
 
 ## 当前 MVP
 
-技术栈：.NET 8 + WPF，无第三方依赖。
+技术栈：.NET 8 + WPF，使用 `Microsoft.Extensions.Configuration` 读取本地配置。
 
 ## 本地配置
 
@@ -21,6 +21,20 @@ Copy-Item .\config.example.json .\config.json
 
 然后只在本机填写 WebDAV 地址、账号、密码、本地 `.codex` 路径和 NAS 目录。程序启动和每次同步时都会读取 `Localaddress` 和 `Remoteaddress`。不要把真实的 `config.json` 提交或分享；如果凭据曾经进入过 Git 历史，请立即更换密码。
 
+配置示例：
+
+```json
+{
+  "Url": "https://your-webdav-host.example/",
+  "Username": "your-username",
+  "Password": "your-password",
+  "Remoteaddress": "CodexSync",
+  "Localaddress": "%USERPROFILE%/.codex"
+}
+```
+
+`Url` 是 WebDAV 服务地址，`Remoteaddress` 是 NAS 远程根目录，`Localaddress` 是本机 Codex 目录。路径支持 `%USERPROFILE%` 等环境变量。
+
 已经实现：
 
 - WebDAV 连接测试
@@ -31,6 +45,16 @@ Copy-Item .\config.example.json .\config.json
 - 从 NAS 下载并恢复快照
 - 同步前检测 `codex` 进程，运行中拒绝同步
 - 默认不触碰 `auth.json` 和 `config.toml`
+
+## 使用流程
+
+1. 完全关闭 Codex。
+2. 点击“测试 WebDAV”，确认连接正常。
+3. 在拥有最新会话的一台电脑上点击“上传到 NAS”。
+4. 在另一台电脑配置相同的 WebDAV 地址后，点击“从 NAS 拉取”。
+5. 拉取前程序会自动备份本机当前同步数据。
+
+普通上传和拉取是“单一最新版覆盖”模型，不是双机历史合并。如果两台电脑各自已经有独立历史记录，请不要直接互相覆盖。
 
 当前同步白名单：
 
@@ -79,6 +103,30 @@ dotnet build .\CodexSync.sln
 ```powershell
 dotnet run --project .\CodexSync.csproj
 ```
+
+## 项目结构
+
+```text
+CodexSync/
+├─ MainWindow.xaml(.cs)       WPF 界面和操作入口
+├─ Services/
+│  ├─ WebDavService.cs        WebDAV 上传、下载和目录管理
+│  ├─ SnapshotService.cs      快照、备份和恢复
+│  ├─ SyncService.cs          上传/拉取流程
+│  └─ CodexStateService.cs    Codex 进程和会话统计
+├─ Models/SyncManifest.cs     远程快照清单模型
+├─ config.example.json        无敏感信息的配置模板
+└─ config.json                本机配置，不提交到 Git
+```
+
+本机备份默认保存到 `%LOCALAPPDATA%\CodexSync\Backups`。
+
+## 当前限制
+
+- 当前版本不支持首次双机历史合并。
+- 拉取操作会覆盖同步白名单内的本机数据。
+- 临时快照和历史备份目前没有自动清理策略。
+- 快照暂未加入校验和或版本锁机制。
 
 ## 开发分支
 
