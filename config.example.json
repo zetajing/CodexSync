@@ -1,0 +1,7 @@
+{
+  "Url": "https://your-webdav-host.example/",
+  "Username": "your-username",
+  "Password": "your-password",
+  "Remoteaddress": "CodexSync",
+  "Localaddress": "C:/Users/YourName/.codex"
+}

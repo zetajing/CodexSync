@@ -11,6 +11,16 @@ Windows 下用于多台电脑之间同步 Codex 本地会话记录的小工具�
 
 技术栈：.NET 8 + WPF，无第三方依赖。
 
+## 本地配置
+
+WebDAV 地址和登录信息保存在本地 `config.json`，该文件已加入 `.gitignore`，不会提交到 Git。首次使用时复制模板：
+
+```powershell
+Copy-Item .\config.example.json .\config.json
+```
+
+然后只在本机填写 WebDAV 地址、账号、密码、本地 `.codex` 路径和 NAS 目录。程序启动和每次同步时都会读取 `Localaddress` 和 `Remoteaddress`。不要把真实的 `config.json` 提交或分享；如果凭据曾经进入过 Git 历史，请立即更换密码。
+
 已经实现：
 
 - WebDAV 连接测试
