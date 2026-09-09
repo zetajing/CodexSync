@@ -1,1 +1,79 @@
 # CodexSync
+
+Windows 下用于多台电脑之间同步 Codex 本地会话记录的小工具，目标场景是：
+
+- 两台电脑轮流使用 Codex，不同时运行
+- 飞牛 fnOS / 群晖 / Nextcloud / 其它 WebDAV 作为中转
+- Codex 始终读写本机 `%USERPROFILE%\.codex`
+- 只有在 Codex 完全关闭时执行同步（冷同步）
+
+## 当前 MVP
+
+技术栈：.NET 8 + WPF，无第三方依赖。
+
+已经实现：
+
+- WebDAV 连接测试
+- 扫描本机 `sessions` 数量
+- 将会话状态打包为 ZIP 快照后上传 WebDAV
+- 使用 `manifest.json` 指向 NAS 最新快照
+- 拉取前自动备份本机当前状态
+- 从 NAS 下载并恢复快照
+- 同步前检测 `codex` 进程，运行中拒绝同步
+- 默认不触碰 `auth.json` 和 `config.toml`
+
+当前同步白名单：
+
+- `sessions/`
+- `archived_sessions/`
+- `session_index.jsonl`
+- `state_5.sqlite`
+- `thread_history_1.sqlite`
+- `history.jsonl`
+- `memories/`
+- `skills/`
+
+NAS 目录结构：
+
+```text
+CodexSync/
+├─ manifest.json
+└─ snapshots/
+   ├─ 20260909_120000_PC-A.zip
+   └─ 20260909_123000_PC-B.zip
+```
+
+## 非常重要：两台电脑都已有历史记录
+
+当前版本的普通“上传 / 拉取”属于单一最新版模型。若 PC-A、PC-B 目前各自都有独立 session，先不要互相覆盖。
+
+下一阶段会加入“首次合并”功能：
+
+1. 两边先完整备份
+2. 按 session/thread ID 合并
+3. 相同内容去重
+4. 一边是另一边完整延续时保留较新版本
+5. 真正发生分叉的 session 交给用户选择
+6. 合并后生成统一 Master，再进入日常上传/拉取模式
+
+## 编译
+
+Visual Studio 2022 打开 `CodexSync.sln`，或在 Windows 终端执行：
+
+```powershell
+dotnet build .\CodexSync.sln
+```
+
+运行：
+
+```powershell
+dotnet run --project .\CodexSync.csproj
+```
+
+## 开发分支
+
+当前 MVP 开发位于：
+
+```text
+feature/wpf-mvp
+```
