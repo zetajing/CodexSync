@@ -23,17 +23,19 @@ public partial class MainWindow : Window
 
     private async void TestButton_Click(object sender, RoutedEventArgs e)
     {
+        SaveSettings();
         await RunBusyAsync(async () =>
         {
             AppendLog("正在测试 WebDAV 连接...");
             using var webDav = CreateWebDav();
             await webDav.TestConnectionAsync();
-            AppendLog("WebDAV 连接成功。");
+            AppendLog("WebDAV 连接成功，配置已保存。");
         });
     }
 
     private async void PushButton_Click(object sender, RoutedEventArgs e)
     {
+        SaveSettings();
         var result = MessageBox.Show(
             "上传会把本机当前 Codex 会话作为 NAS 最新版本。\n\n如果另一台电脑还有尚未合并的独立历史，请先取消。",
             "确认上传",
@@ -64,6 +66,7 @@ public partial class MainWindow : Window
 
     private async void PullButton_Click(object sender, RoutedEventArgs e)
     {
+        SaveSettings();
         var result = MessageBox.Show(
             "拉取会先备份本机，然后替换本机的会话同步数据。auth.json 和 config.toml 不会被修改。\n\n如果两台电脑目前各自都有独立历史，请先取消，等待使用“首次合并”功能。",
             "确认拉取",
